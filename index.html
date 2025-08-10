@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CT Fight House — Presenças (v6c12)</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+*{box-sizing:border-box;min-width:0}
+:root{--bg:#0a0a0a;--card:#121212;--ink:#f5f5f5;--muted:#bdbdbd;--brand:#ffd000;--accent:#10b981;--danger:#ef4444;--line:rgba(255,255,255,.1);--shadow:0 8px 30px rgba(0,0,0,.35)}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
+.topbar{position:sticky;top:0;z-index:20;display:flex;gap:.6rem;align-items:center;padding:.7rem .9rem;background:linear-gradient(135deg,#1b1b1b,#0f0f0f);box-shadow:var(--shadow)}
+.topbar h1{flex:1;margin:0;font-size:1.05rem}
+#menu-hit{position:relative;display:flex;align-items:center;justify-content:center}
+#menu-toggle{background:#1a1a1a;border:1px solid var(--line);color:#fff;font-size:1.2rem;cursor:pointer;border-radius:12px;padding:.5rem .7rem;min-width:44px;min-height:44px}
+.logo{height:34px;width:34px;border-radius:50%;border:2px solid var(--brand);background:#000;display:inline-flex;align-items:center;justify-content:center;font-weight:900;color:#ffd000}
+/* Sidebar (mesmo do v6c10) */
+.sidebar{position:fixed;top:0;left:0;height:100%;width:82%;max-width:320px;background:#111;transform:translateX(-104%);transition:transform .28s ease;z-index:30;box-shadow:var(--shadow);padding:1rem .75rem}
+.sidebar.open{transform:translateX(0)}
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:25;opacity:0;pointer-events:none;transition:opacity .25s}
+.backdrop.show{opacity:1;pointer-events:auto}
+.nav-link{display:block;padding:.9rem .95rem;border-radius:.9rem;color:#e5e7eb;text-decoration:none;font-weight:800;border:1px solid var(--line);background:#151515;margin:.35rem 0}
+.nav-link.active,.nav-link:hover{background:#1b1b1b;border-color:#444}
+#main{max-width:1000px;margin:1rem auto;padding:0 1rem}
+.card{background:var(--card);border-radius:16px;padding:1rem;box-shadow:var(--shadow);margin:.75rem 0;border:1px solid var(--line)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.75rem}
+@media(max-width:720px){.grid-4{grid-template-columns:1fr 1fr}.grid-3{grid-template-columns:1fr 1fr}.grid-2{grid-template-columns:1fr}}
+label{display:flex;flex-direction:column;font-weight:700;font-size:.9rem;gap:.35rem}
+input,select,textarea{width:100%;padding:.7rem;border:1px solid var(--line);border-radius:12px;background:#0c0c0c;color:#f5f5f5;max-width:100%}
+select[multiple]{height:180px}
+.btn{background:var(--brand);color:#111;border:0;padding:.65rem 1rem;border-radius:12px;cursor:pointer;font-weight:900}
+.btn.ghost{background:#1b1b1b;color:#fff;border:1px solid var(--line)}
+.btn.secondary{background:var(--accent);color:#fff}
+.btn.danger{background:var(--danger);color:#fff}
+.list-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem}
+.small{font-size:.85rem;color:var(--muted)}
+.belt-tag{display:inline-block;padding:.25rem .6rem;border-radius:999px;font-weight:900;color:#0c0c0c;text-transform:capitalize;border:1px solid var(--line)}
+.belt-branca{background:#e5e7eb}.belt-cinza{background:#9ca3af;color:#fff}.belt-amarela{background:#f59e0b}.belt-laranja{background:#f97316;color:#fff}.belt-verde{background:#10b981;color:#003b2e}.belt-azul{background:#2563eb;color:#fff}.belt-roxa{background:#7c3aed;color:#fff}.belt-marrom{background:#8b5e3c;color:#fff}.belt-preta{background:#111827;color:#fff}
+.ranking{list-style:none;padding:0;margin:0}
+.ranking li{display:flex;justify-content:space-between;align-items:center;background:#0c0c0c;border:1px solid var(--line);padding:.65rem .8rem;margin:.5rem 0;border-radius:12px}
+.ranking li.top{border:2px solid var(--brand)}
+.badge{display:inline-block;padding:.2rem .5rem;border-radius:999px;font-weight:800}
+.badge.warn{background:#462;color:#ffd000}.badge.danger{background:#421;color:#ff6b6b}
+section{display:none}.active-section{display:block}
+.fab{position:fixed;right:18px;bottom:18px;background:var(--brand);color:#111;border:0;border-radius:999px;padding:.9rem 1.1rem;font-weight:900;box-shadow:var(--shadow);z-index:15}
+/* POPUP */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40;display:flex;align-items:center;justify-content:center;padding:12px}
+.overlay>div{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:16px;padding:1rem;width:min(92%,740px);max-height:90vh;overflow:auto}
+body.modal-open{overflow:hidden;touch-action:none}
+.report-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr;gap:.5rem}
+.report-item{background:#0c0c0c;border:1px solid var(--line);border-radius:12px;padding:.75rem .9rem}
+.report-row{display:flex;justify-content:space-between;gap:.75rem;align-items:center}
+.report-title{font-weight:900}
+.report-sub{color:#d1d5db;font-size:.9rem}
+.kv{display:flex;gap:.5rem;flex-wrap:wrap}
+.kv .chip{background:#1a1a1a;border:1px solid var(--line);padding:.25rem .5rem;border-radius:8px;font-size:.85rem}
+.pres-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr;gap:.5rem}
+.pres-item{display:flex;justify-content:space-between;align-items:center;background:#0c0c0c;border:1px solid var(--line);padding:.6rem .75rem;border-radius:12px}
+.pres-item .left{display:flex;gap:.5rem;align-items:center}
+.pres-item .extra{font-size:.85rem}
+/* Ajuste para a prévia de mensagem em lista */
+.mono{white-space:pre-line; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+</style>
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<script>
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(console.error);
+  });
+}
+</script>
+
+</head>
+<body>
+<header class="topbar">
+  <div id="menu-hit">
+    <button id="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false">☰</button>
+  </div>
+  <div class="logo">FH</div>
+  <h1>CT Fight House — Presenças</h1>
+</header>
+
+<div id="backdrop" class="backdrop" hidden></div>
+<aside id="sidebar" class="sidebar" aria-hidden="true">
+  <a class="nav-link active" data-section="dashboard-section">Dashboard</a>
+  <a class="nav-link" data-section="turmas-section">Turmas</a>
+  <a class="nav-link" data-section="alunos-section">Alunos</a>
+  <a class="nav-link" data-section="presencas-section">Presenças</a>
+  <a class="nav-link" data-section="ranking-section">Ranking</a>
+  <a class="nav-link" data-section="mensagem-section">Mensagem</a>
+  <a class="nav-link" data-section="relatorio-section">Relatórios</a>
+  <a class="nav-link" data-section="import-export-section">Importar/Exportar</a>
+</aside>
+
+<main id="main">
+  <!-- Dashboard -->
+  <section id="dashboard-section" class="active-section">
+    <div class="card"><h3>Aniversariantes do mês</h3><div id="dash-birthdays"></div></div>
+    <div class="card"><h3>Alertas de ausência</h3><div id="dash-ausentes"></div></div>
+    <div class="card"><h3>Perto de ganhar grau</h3><div id="dash-perto-grau"></div></div>
+    <div class="card"><h3>Top 10 do trimestre</h3><ol id="dash-top10" class="ranking"></ol></div>
+  </section>
+
+  <!-- Turmas -->
+  <section id="turmas-section">
+    <div class="card"><h3>Turmas cadastradas</h3><div id="turmas-list" class="list-grid"></div></div>
+    <button id="add-turma-btn" class="fab" type="button" title="Adicionar Turma">+ Turma</button>
+  </section>
+
+  <!-- Alunos -->
+  <section id="alunos-section">
+    <div class="card">
+      <div class="grid-2">
+        <label>Pesquisar aluno<input type="search" id="aluno-search" placeholder="Digite o nome..." /></label>
+      </div>
+    </div>
+    <div class="card"><h3>Alunos cadastrados</h3><div id="alunos-list" class="list-grid"></div></div>
+    <button id="add-aluno-btn" class="fab" type="button" title="Adicionar Aluno">+ Aluno</button>
+  </section>
+
+  <!-- Presenças -->
+  <section id="presencas-section">
+    <div class="card">
+      <h3>Registrar Presenças</h3>
+      <div class="grid-4">
+        <label>Turma<select id="presenca-turma"></select></label>
+        <label>Data<input type="date" id="presenca-data"></label>
+        <label>Quantidade (lote)<input type="number" id="presenca-quantidade" min="1" value="1" /></label>
+        <div style="display:flex;align-items:end"><button id="btn-registrar" class="btn" type="button">Registrar</button></div>
+      </div>
+      <fieldset id="presenca-alunos-fieldset" class="list-grid" style="margin-top:.75rem"></fieldset>
+      <p class="small">Em lote: as datas serão distribuídas automaticamente para trás, respeitando os dias de treino da turma. Se a data escolhida não for dia de treino, ela entra como <strong>treino extra</strong> (⭐) e conta no progresso.</p>
+    </div>
+  </section>
+
+  <!-- Ranking -->
+  <section id="ranking-section">
+    <div class="card grid-4">
+      <label>Turma (opcional)<select id="ranking-turma"></select></label>
+      <label>De<input type="date" id="ranking-de"></label>
+      <label>Até<input type="date" id="ranking-ate"></label>
+      <div style="display:flex;align-items:end"><button class="btn" id="ranking-atualizar" type="button">Atualizar</button></div>
+    </div>
+    <ol id="ranking-list" class="ranking"></ol>
+  </section>
+
+  <!-- Mensagem -->
+  <section id="mensagem-section">
+    <div class="card grid-4">
+      <label>Turma (opcional)<select id="msg-turma"></select></label>
+      <label>De<input type="date" id="msg-de"></label>
+      <label>Até<input type="date" id="msg-ate"></label>
+      <label>Meta Trimestre (Y do X/Y)<input type="number" id="msg-meta" min="1" value="35"></label>
+    </div>
+    <div class="card">
+      <button class="btn" id="msg-gerar" type="button">Gerar</button>
+      <button class="btn ghost" id="msg-copiar" type="button">Copiar</button>
+      <div id="msg-preview" class="card mono" style="margin-top:.75rem"></div>
+    </div>
+  </section>
+
+  <!-- Relatórios -->
+  <section id="relatorio-section">
+    <div class="card">
+      <h3>Relatórios (gerais)</h3>
+      <div class="kv" style="margin:.5rem 0 1rem">
+        <button id="rel-birthdays" class="btn secondary" type="button">Aniversariantes (mês atual)</button>
+        <button id="rel-presencas" class="btn secondary" type="button">Presenças</button>
+        <button id="rel-graduacao" class="btn secondary" type="button">Graduação / Progresso</button>
+      </div>
+      <ul id="rel-list" class="report-list"></ul>
+    </div>
+  </section>
+
+  <!-- Import/Export -->
+  <section id="import-export-section">
+    <div class="card">
+      <button id="exportar-btn" class="btn secondary" type="button">Exportar JSON</button>
+      <input type="file" id="importar-input" accept="application/json" style="display:none">
+      <button id="importar-btn" class="btn secondary" type="button">Importar JSON</button>
+      <span id="import-export-status" class="small"></span>
+    </div>
+  </section>
+
+  <!-- Perfil do aluno -->
+  <section id="perfil-section">
+    <div id="perfil-content" class="card"></div>
+    <div class="card">
+      <h3>Histórico de graduações</h3>
+      <ul id="perfil-historico" style="padding-left:1rem"></ul>
+      <div class="grid-4">
+        <label>Tipo
+          <select id="hist-tipo"><option value="grau">Grau</option><option value="faixa">Faixa</option></select>
+        </label>
+        <label>Faixa <select id="hist-faixa"></select></label>
+        <label>Grau <input type="number" id="hist-grau" min="0" max="4" value="0"></label>
+        <label>Data <input type="date" id="hist-data"></label>
+      </div>
+      <div style="margin-top:.5rem"><button id="hist-add" class="btn" type="button">Adicionar ao histórico</button></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h3>Presenças</h3>
+        <div>
+          <button id="btn-ver-todas" class="btn ghost" type="button">Ver todas</button>
+          <button id="btn-ver-ultimas" class="btn ghost" type="button" style="display:none">Ver últimas 20</button>
+        </div>
+      </div>
+      <ul id="perfil-historico-presencas" class="pres-list"></ul>
+    </div>
+    <div class="card grid-2">
+      <label>Mês para zerar<input type="month" id="perfil-mes"></label>
+      <div style="display:flex;align-items:end"><button id="perfil-zerar-mes" class="btn danger" type="button">Zerar presenças do mês</button></div>
+    </div>
+    <button id="voltar-lista" class="btn" type="button">Voltar</button>
+  </section>
+</main>
+
+<script>
+/* ===== DADOS ===== */
+const FAIXAS=['branca','cinza','amarela','laranja','verde','azul','roxa','marrom','preta'];
+const MAX_GRAUS=4;
+let turmas=[], alunos=[], presencas=[];
+
+/* ===== UTIL ===== */
+function saveLocal(){localStorage.setItem('jj_data_v6c12', JSON.stringify({turmas,alunos,presencas}))}
+function loadLocal(){try{const s=localStorage.getItem('jj_data_v6c12')||localStorage.getItem('jj_data_v6c10'); if(s){const d=JSON.parse(s); turmas=d.turmas||[]; alunos=d.alunos||[]; presencas=d.presencas||[]}}catch(e){}}
+function beltClass(fx){return 'belt-'+(fx||'').toLowerCase()}
+function beltTag(f){const s=document.createElement('span'); s.className='belt-tag '+beltClass(f); s.textContent=f; return s}
+function parseBR(s){const [d,m,y]=s.split('/').map(Number); return new Date(y,m-1,d)}
+function toBR(dt){const d=String(dt.getDate()).padStart(2,'0'), m=String(dt.getMonth()+1).padStart(2,'0'), y=dt.getFullYear(); return `${d}/${m}/${y}`}
+function inRange(dateStr, de, ate){const dt=parseBR(dateStr); return (!de||dt>=de)&&(!ate||dt<=ate)}
+function alunosDaTurma(turmaId){ return turmaId? alunos.filter(a=>a.turmas && a.turmas.map(String).includes(String(turmaId))) : alunos.slice() }
+function contarPresencasPeriodo(turmaId,de,ate){
+  const m=new Map(); alunosDaTurma(turmaId).forEach(a=>m.set(String(a.id),0));
+  presencas.forEach(p=>{ if(turmaId && String(p.turmaId)!==String(turmaId)) return; if(inRange(p.data,de,ate)){ m.set(String(p.alunoId),(m.get(String(p.alunoId))||0)+1); }});
+  return m;
+}
+function ultimaPresenca(alunoId){
+  const list=presencas.filter(p=>String(p.alunoId)===String(alunoId));
+  if(!list.length) return null;
+  const ord=list.map(p=>parseBR(p.data)).sort((a,b)=>b-a);
+  return ord[0];
+}
+
+/* ===== OVERLAY (POP-UP) ===== */
+function openOverlay(html, onReady){
+  const ov=document.createElement('div'); ov.className='overlay'; ov.setAttribute('role','dialog'); ov.setAttribute('aria-modal','true');
+  ov.innerHTML=`<div>${html}</div>`; document.body.appendChild(ov); document.body.classList.add('modal-open');
+  ov.addEventListener('click', (e)=>{ if(e.target===ov) closeOverlay(); }, {capture:true});
+  onReady(ov);
+}
+function closeOverlay(){ const ov=document.querySelector('.overlay'); if(ov){ov.remove(); document.body.classList.remove('modal-open');}}
+
+/* ===== TURMA POP-UP ===== */
+function popupTurma(t=null){
+  const diasSet = new Set((t&&t.dias)||[]);
+  const html=`<div class="card">
+    <h3>${t?'Editar Turma':'Adicionar Turma'}</h3>
+    <div class="grid-2">
+      <label>Nome <input id="t-nome" value="${t?t.nome:''}"></label>
+      <label>Meta por grau (ref.) <input id="t-meta" type="number" value="${t?t.meta:10}"></label>
+    </div>
+    <div class="grid-3" style="margin-top:.5rem">
+      <label>Meta trimestre <input id="t-metaTri" type="number" value="${t?t.metaTri:35}"></label>
+      <label>Início <input id="t-inicio" type="time" value="${t?t.inicio:''}"></label>
+      <label>Término <input id="t-fim" type="time" value="${t?t.fim:''}"></label>
+    </div>
+    <div style="margin-top:.5rem">
+      <div>Dias:</div>
+      <div class="kv" id="t-dias">
+        ${['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map((d,i)=>`<label><input type="checkbox" value="${i}" ${diasSet.has(i)?'checked':''}> ${d}</label>`).join('')}
+      </div>
+    </div>
+    <div style="margin-top:.75rem;display:flex;gap:.5rem;flex-wrap:wrap">
+      <button class="btn" id="t-salvar" type="button">${t?'Salvar':'Adicionar'}</button>
+      <button class="btn ghost" id="t-cancelar" type="button">Cancelar</button>
+    </div>
+  </div>`;
+  openOverlay(html, ov=>{
+    ov.querySelector('#t-salvar').onclick=()=>{
+      const nome=ov.querySelector('#t-nome').value.trim();
+      const meta=parseInt(ov.querySelector('#t-meta').value,10)||10;
+      const metaTri=parseInt(ov.querySelector('#t-metaTri').value,10)||35;
+      const inicio=ov.querySelector('#t-inicio').value;
+      const fim=ov.querySelector('#t-fim').value;
+      const dias=Array.from(ov.querySelectorAll('#t-dias input:checked')).map(x=>parseInt(x.value,10));
+      if(!nome){ alert('Informe o nome da turma'); return; }
+      if(t){ Object.assign(t,{nome,meta,metaTri,inicio,fim,dias}); }
+      else{ const id=turmas.length?Math.max(...turmas.map(t=>+t.id))+1:1; turmas.push({id:String(id),nome,meta,metaTri,inicio,fim,dias}); }
+      saveLocal(); renderTurmas(); updateSelects(true); closeOverlay();
+    };
+    ov.querySelector('#t-cancelar').onclick=closeOverlay;
+  });
+}
+
+/* ===== ALUNO POP-UP ===== */
+function popupAluno(a=null){
+  const html=`<div class="card">
+    <h3>${a?'Editar Aluno':'Adicionar Aluno'}</h3>
+    <div class="grid-3">
+      <label>Nome <input id="a-nome" value="${a?a.nome:''}"></label>
+      <label>Modalidade
+        <select id="a-mod"><option ${!a||a.modalidade==='Jiu-Jitsu'?'selected':''}>Jiu-Jitsu</option><option ${a&&a.modalidade==='Muay Thai'?'selected':''}>Muay Thai</option></select>
+      </label>
+      <label>Nascimento <input type="date" id="a-nasc" value="${a?a.nasc||'':''}"></label>
+    </div>
+    <div class="grid-3">
+      <label>Faixa <select id="a-faixa">${FAIXAS.map(f=>`<option ${a&&a.faixa===f?'selected':''} value="${f}">${f}</option>`).join('')}</select></label>
+      <label>Meta p/ grau <input id="a-meta" type="number" value="${a?a.metaGrau:10}"></label>
+      <label>Grau <input id="a-grau" type="number" min="0" max="4" value="${a?a.grau:0}"></label>
+    </div>
+    <div class="grid-3">
+      <label>Turmas (multi)
+        <select id="a-turmas" multiple>
+          ${turmas.map(t=>`<option value="${t.id}" ${(a&&a.turmas||[]).map(String).includes(String(t.id))?'selected':''}>${t.nome}</option>`).join('')}
+        </select>
+      </label>
+    </div>
+    <div style="margin-top:.75rem;display:flex;gap:.5rem;flex-wrap:wrap">
+      <button class="btn" id="a-salvar" type="button">${a?'Salvar':'Adicionar'}</button>
+      ${a?'<button class="btn danger" id="a-excluir" type="button">Excluir</button>':''}
+      <button class="btn ghost" id="a-cancelar" type="button">Cancelar</button>
+    </div>
+  </div>`;
+  openOverlay(html, ov=>{
+    ov.querySelector('#a-salvar').onclick=()=>{
+      const nome=ov.querySelector('#a-nome').value.trim();
+      const modalidade=ov.querySelector('#a-mod').value;
+      const faixa=ov.querySelector('#a-faixa').value;
+      const nasc=ov.querySelector('#a-nasc').value;
+      const metaGrau=parseInt(ov.querySelector('#a-meta').value,10)||10;
+      const grau=parseInt(ov.querySelector('#a-grau').value,10)||0;
+      const turmasIds=Array.from(ov.querySelector('#a-turmas').selectedOptions).map(o=>o.value);
+      if(!nome){ alert('Informe o nome do aluno'); return; }
+      if(a){ Object.assign(a,{nome,modalidade,faixa,nasc,metaGrau,grau,turmas:turmasIds}); }
+      else { const id=alunos.length?Math.max(...alunos.map(x=>+x.id))+1:1; alunos.push({id:String(id),nome,modalidade,faixa,nasc,metaGrau,grau,progresso:0,turmas:turmasIds,historico:[]}); }
+      saveLocal(); renderAlunos(); refreshPresencaAlunoList(); closeOverlay();
+    };
+    const ex=ov.querySelector('#a-excluir'); if(ex) ex.onclick=()=>{ if(confirm('Excluir aluno?')){ alunos=alunos.filter(x=>x!==a); presencas=presencas.filter(p=>String(p.alunoId)!==String(a.id)); saveLocal(); renderAlunos(); refreshPresencaAlunoList(); closeOverlay(); } };
+    ov.querySelector('#a-cancelar').onclick=closeOverlay;
+  });
+}
+
+/* ===== LISTAGENS ===== */
+function renderTurmas(){
+  const wrap=document.getElementById('turmas-list'); wrap.innerHTML='';
+  turmas.forEach(t=>{
+    const c=document.createElement('div'); c.className='card';
+    const head=document.createElement('div'); head.className='report-row';
+    head.innerHTML=`<div class="report-title">${t.nome}</div>`;
+    const actions=document.createElement('div');
+    const e=document.createElement('button'); e.className='btn'; e.textContent='Editar'; e.type='button'; e.onclick=()=>popupTurma(t);
+    const d=document.createElement('button'); d.className='btn danger'; d.textContent='Excluir'; d.type='button'; d.onclick=()=>{ if(confirm('Excluir turma?')){ turmas=turmas.filter(x=>x!==t); saveLocal(); renderTurmas(); updateSelects(); } };
+    actions.append(e,d); head.append(actions); c.append(head);
+    const dias=(t.dias||[]).map(n=>['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][+n]).join(', ');
+    const info=document.createElement('div'); info.className='small'; info.textContent=`${dias||'Dias não definidos'} • ${t.inicio||'--:--'}–${t.fim||'--:--'} • Meta ref.: ${t.meta} • Tri: ${t.metaTri}`;
+    c.append(info); wrap.append(c);
+  });
+}
+function renderAlunos(){
+  const q=(document.getElementById('aluno-search')?.value||'').toLowerCase();
+  const wrap=document.getElementById('alunos-list'); if(!wrap) return; wrap.innerHTML='';
+  alunos.filter(a=>a.nome.toLowerCase().includes(q)).forEach(a=>{
+    const c=document.createElement('div'); c.className='card';
+    const row=document.createElement('div'); row.className='report-row';
+    const left=document.createElement('div'); left.style.display='flex'; left.style.alignItems='center'; left.style.gap='.5rem';
+    left.appendChild(beltTag(a.faixa)); const nm=document.createElement('div'); nm.className='report-title'; nm.textContent=a.nome; left.appendChild(nm);
+    const actions=document.createElement('div');
+    const perfil=document.createElement('button'); perfil.className='btn ghost'; perfil.textContent='Perfil'; perfil.type='button'; perfil.onclick=()=>openPerfil(a.id);
+    const edit=document.createElement('button'); edit.className='btn'; edit.textContent='Editar'; edit.type='button'; edit.onclick=()=>popupAluno(a);
+    actions.append(perfil,edit);
+    row.append(left,actions); c.append(row);
+    const meta=a.metaGrau||10; const faltFaixa=(MAX_GRAUS-(a.grau||0))*meta-(a.progresso||0);
+    const small=document.createElement('div'); small.className='small'; small.textContent=`Grau ${a.grau}/${MAX_GRAUS} • Progresso ${a.progresso}/${meta} • Falta faixa: ${faltFaixa}`;
+    c.append(small); wrap.append(c);
+  });
+}
+
+/* ===== PRESENÇAS ===== */
+function toBRdateOnly(d){return toBR(d)}
+function registerPresencas(turmaId, dataISO, ids, qtd){
+  const turma = turmas.find(t=>String(t.id)===String(turmaId));
+  const dias = (turma&&turma.dias)||[];
+  function datasGeradas(){
+    const res=[];
+    let d = dataISO? new Date(dataISO): new Date();
+    d = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    while(res.length<qtd){
+      const wd=d.getDay();
+      const isDia = dias.length? dias.map(Number).includes(wd):true;
+      res.push({data:toBRdateOnly(d), extra: !isDia});
+      d = new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1);
+      if(dias.length){
+        while(!dias.map(Number).includes(d.getDay())){
+          res.push({data:toBRdateOnly(d), extra:true});
+          d = new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1);
+          if(res.length>=qtd) break;
+        }
+      }
+    }
+    return res.slice(0,qtd);
+  }
+  const datas = datasGeradas();
+  ids.forEach(alunoId=>{
+    const a=alunos.find(x=>String(x.id)===String(alunoId)); if(!a) return;
+    const meta=a.metaGrau||10;
+    datas.forEach(info=>{
+      const dateStr=info.data;
+      const ja=presencas.some(p=>String(p.alunoId)===String(a.id)&&String(p.turmaId)===String(turmaId)&&p.data===dateStr);
+      if(ja) return;
+      const id=presencas.length?Math.max(...presencas.map(p=>+p.id))+1:1;
+      presencas.push({id:String(id), turmaId, alunoId, data:dateStr, extra: !!info.extra});
+      a.progresso=(a.progresso||0)+1;
+      if(a.progresso>=meta){
+        const novos=Math.floor(a.progresso/meta);
+        for(let g=0;g<novos;g++){
+          a.grau+=1;
+          (a.historico=a.historico||[]).push({tipo:'grau',data:dateStr,faixa:a.faixa,grau:a.grau});
+          if(a.grau>=MAX_GRAUS){
+            a.grau=0;
+            const idx=FAIXAS.indexOf(a.faixa);
+            if(idx>=0&&idx<FAIXAS.length-1){
+              a.faixa=FAIXAS[idx+1];
+              (a.historico=a.historico||[]).push({tipo:'faixa',data:dateStr,faixa:a.faixa,grau:0});
+            }
+          }
+        }
+        a.progresso=0;
+      }
+    });
+  });
+  saveLocal(); renderAlunos(); renderDashboard(); refreshPresencaAlunoList();
+}
+function excluirPresenca(pId){
+  const p = presencas.find(x=>String(x.id)===String(pId)); if(!p) return;
+  const a = alunos.find(x=>String(x.id)===String(p.alunoId));
+  presencas = presencas.filter(x=>x!==p);
+  if(a){ a.progresso = Math.max(0,(a.progresso||0)-1); }
+  saveLocal();
+}
+function refreshPresencaAlunoList(){
+  const fs=document.getElementById('presenca-alunos-fieldset'); if(!fs) return;
+  fs.innerHTML='';
+  const turmaId=document.getElementById('presenca-turma')?.value;
+  if(!turmaId){ fs.textContent='Selecione uma turma.'; return; }
+  const list=alunosDaTurma(turmaId);
+  if(!list.length){fs.textContent='Nenhum aluno nessa turma.'; return;}
+  list.forEach(a=>{
+    const label=document.createElement('label');
+    label.style.display='flex'; label.style.alignItems='center'; label.style.gap='.5rem';
+    label.style.background='#0c0c0c'; label.style.border='1px solid var(--line)';
+    label.style.padding='.5rem .6rem'; label.style.borderRadius='10px';
+    const cb=document.createElement('input'); cb.type='checkbox'; cb.value=a.id;
+    label.append(cb, document.createTextNode(' '+a.nome)); fs.appendChild(label);
+  });
+}
+
+/* ===== RANKING / MENSAGEM ===== */
+function renderRanking(){
+  const turmaSel=document.getElementById('ranking-turma').value;
+  const deStr=document.getElementById('ranking-de').value;
+  const ateStr=document.getElementById('ranking-ate').value;
+  const de=deStr?new Date(deStr):null; const ate=ateStr?new Date(ateStr):null;
+  const counts=contarPresencasPeriodo(turmaSel||null, de, ate);
+  const arr=Array.from(counts.entries()).map(([id,score])=>{
+    const a=alunos.find(x=>String(x.id)===String(id)); return {id, nome:a?a.nome:'(aluno)', score};
+  }).sort((a,b)=>b.score-a.score);
+  const ol=document.getElementById('ranking-list'); ol.innerHTML='';
+  arr.forEach((r,idx)=>{
+    const li=document.createElement('li'); if(idx===0) li.classList.add('top');
+    li.innerHTML=`<span>${idx+1}. <strong>${r.nome}</strong></span><span>${idx===0?'🏆 ':''}${r.score}</span>`;
+    ol.appendChild(li);
+  });
+}
+function gerarMensagem(){
+  const turmaSel=document.getElementById('msg-turma').value;
+  const deStr=document.getElementById('msg-de').value;
+  const ateStr=document.getElementById('msg-ate').value;
+  const meta=parseInt(document.getElementById('msg-meta').value,10)||35;
+  const de=deStr?new Date(deStr):null; const ate=ateStr?new Date(ateStr):null;
+  const counts=contarPresencasPeriodo(turmaSel||null, de, ate);
+  const ranking=Array.from(counts.entries()).map(([id,score])=>{
+    const a=alunos.find(x=>String(x.id)===String(id)); return {id, nome:a?a.nome:'(aluno)', score};
+  }).sort((a,b)=>b.score-a.score);
+  const primeiroId=ranking.length?ranking[0].id:null;
+  const hoje=new Date(); const ult7_de=de||new Date(hoje.getFullYear(),hoje.getMonth(),hoje.getDate()-7); const ult7_ate=ate||hoje;
+  function inRangeD(dateStr, de, ate){const dt=parseBR(dateStr); return (!de||dt>=de)&&(!ate||dt<=ate)}
+  function teveUlt7(alunoId){return presencas.some(p=> String(p.alunoId)===String(alunoId)&&(!turmaSel||String(p.turmaId)===String(turmaSel))&& inRangeD(p.data,ult7_de,ult7_ate));}
+  const linhas=["*SOMATÓRIO DE PRESENÇA*"];
+  ranking.forEach(r=>{
+    let icons=""; if(primeiroId && String(r.id)===String(primeiroId)) icons+=" 🏆"; if(teveUlt7(r.id)) icons+="➕";
+    linhas.push(`- ${r.nome}: ${r.score}/${meta}${icons}`);
+  });
+  document.getElementById('msg-preview').textContent=linhas.join("\n");
+}
+function copiarMensagem(){
+  const text=document.getElementById('msg-preview').textContent;
+  if(navigator.clipboard){ navigator.clipboard.writeText(text); } else {
+    const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+  }
+}
+
+/* ===== RELATÓRIOS ===== */
+function setReportItems(items){
+  const ul=document.getElementById('rel-list'); ul.innerHTML='';
+  items.forEach(html=>{ const li=document.createElement('li'); li.className='report-item'; li.innerHTML=html; ul.appendChild(li); });
+}
+/* Ajuste: calcula dias faltantes corretamente e mantém só mês atual */
+function diasAteProxAniversario(nascISO){
+  const [Y,M,D]=nascISO.split('-').map(Number);
+  const hoje=new Date();
+  const baseHoje=new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+  let prox=new Date(hoje.getFullYear(), M-1, D);
+  if(prox < baseHoje){ prox = new Date(hoje.getFullYear()+1, M-1, D); }
+  const umDia=24*60*60*1000;
+  return Math.round((prox-baseHoje)/umDia);
+}
+function relAniversariantes(){
+  const now=new Date(); const month=now.getMonth();
+  const lista=alunos
+    .filter(a=>a.nasc && new Date(a.nasc).getMonth()===month)
+    .map(a=>{const d=new Date(a.nasc); return {nome:a.nome, dia:d.getDate(), faltam:diasAteProxAniversario(a.nasc)};})
+    .sort((x,y)=>x.faltam-y.faltam || x.dia-y.dia);
+  setReportItems(lista.length? lista.map(i=>`<div class="report-row"><div><div class="report-title">${i.nome}</div><div class="report-sub">${String(i.dia).padStart(2,'0')}/${String(month+1).padStart(2,'0')}</div></div><div class="kv"><span class="chip">faltam ${i.faltam} dia(s)</span></div></div>`):[`<div class="report-sub">Ninguém neste mês</div>`]);
+}
+function relPresencas(){
+  const counts=new Map(); alunos.forEach(a=>counts.set(a.nome,0));
+  presencas.forEach(p=>{ const a=alunos.find(x=>String(x.id)===String(p.alunoId)); if(a) counts.set(a.nome,(counts.get(a.nome)||0)+1); });
+  const arr=[...counts.entries()].map(([nome,total])=>({nome,total})).sort((a,b)=>b.total-a.total);
+  setReportItems(arr.map(r=>`<div class="report-row"><div class="report-title">${r.nome}</div><div class="kv"><span class="chip">${r.total}</span></div></div>`));
+}
+function relGraduacao(){
+  const items=alunos.map(a=>{
+    const meta=a.metaGrau||10;
+    const faltGrau=Math.max(meta-(a.progresso||0),0);
+    const faltFaixa=(MAX_GRAUS-(a.grau||0))*meta-(a.progresso||0);
+    return {nome:a.nome, faixa:a.faixa, grau:a.grau, faltGrau, faltFaixa, meta};
+  }).sort((x,y)=>x.faltGrau-y.faltGrau);
+  setReportItems(items.map(it=>`<div class="report-row"><div><div class="report-title">${it.nome}</div><div class="report-sub">Faixa ${it.faixa} • Grau ${it.grau}/${MAX_GRAUS}</div></div><div class="kv"><span class="chip">Falta p/ grau: <strong>${it.faltGrau}</strong></span><span class="chip">Falta p/ faixa: <strong>${it.faltFaixa}</strong> <span class="small">(meta ${it.meta}×4)</span></span></div></div>`));
+}
+
+/* ===== DASHBOARD ===== */
+function renderDashboard(){
+  const now=new Date();
+  const month=now.getMonth()+1;
+  const bdiv=document.getElementById('dash-birthdays');
+  const anivers=alunos.filter(a=>a.nasc && parseInt(a.nasc.split('-')[1],10)===month)
+      .map(a=>({nome:a.nome, dia:parseInt(a.nasc.split('-')[2],10)}))
+      .sort((x,y)=>x.dia-y.dia);
+  bdiv.innerHTML = anivers.length ? '<ul>'+anivers.map(i=>`<li>${i.nome} — ${String(i.dia).padStart(2,'0')}/${String(month).padStart(2,'0')}</li>`).join('')+'</ul>' : '<span class="small">Ninguém este mês.</span>';
+
+  const adiv=document.getElementById('dash-ausentes'); const sete=7, quinze=15;
+  const aus=alunos.map(a=>{
+    const u=ultimaPresenca(a.id); const diff = u? Math.round((now- u)/86400000): 9999;
+    return {nome:a.nome, diff};
+  }).filter(x=>x.diff>=sete).sort((a,b)=>b.diff-a.diff);
+  adiv.innerHTML = aus.length? '<ul>'+aus.map(x=>`<li>${x.nome} — <span class="badge ${x.diff>=quinze?'danger':'warn'}">${x.diff} dias</span></li>`).join('')+'</ul>' : '<span class="small">Sem ausentes.</span>';
+
+  const pdiv=document.getElementById('dash-perto-grau');
+  const perto=alunos.map(a=>{
+    const meta=a.metaGrau||10; return {nome:a.nome, falt: Math.max(meta-(a.progresso||0),0)};
+  }).sort((x,y)=>x.falt-y.falt).slice(0,10);
+  pdiv.innerHTML = perto.length? '<ul>'+perto.map(p=>`<li>${p.nome} — falta ${p.falt}</li>`).join('')+'</ul>' : '<span class="small">Sem dados.</span>';
+
+  const tdiv=document.getElementById('dash-top10'); tdiv.innerHTML='';
+  const de=new Date(now.getFullYear(), now.getMonth(), now.getDate()-90);
+  const counts=contarPresencasPeriodo(null,de,now);
+  const arr=Array.from(counts.entries()).map(([id,score])=>{
+    const a=alunos.find(x=>String(x.id)===String(id)); return {id, nome:a?a.nome:'(aluno)', score};
+  }).sort((a,b)=>b.score-a.score).slice(0,10);
+  arr.forEach((r,idx)=>{
+    const li=document.createElement('li'); if(idx===0) li.classList.add('top');
+    li.innerHTML=`<span>${idx+1}. <strong>${r.nome}</strong></span><span>${idx===0?'🏆 ':''}${r.score}</span>`;
+    tdiv.appendChild(li);
+  });
+}
+
+/* ===== PERFIL ===== */
+function openPerfil(alunoId){
+  const a=alunos.find(x=>String(x.id)===String(alunoId)); if(!a) return;
+  showSection('perfil-section');
+  const histFaixa=document.getElementById('hist-faixa'); if(histFaixa && !histFaixa.options.length){histFaixa.innerHTML=FAIXAS.map(f=>`<option value="${f}">${f}</option>`).join('')}
+  const cont=document.getElementById('perfil-content'); cont.innerHTML='';
+  const head=document.createElement('div'); head.style.display='flex'; head.style.gap='.5rem'; head.style.alignItems='center';
+  head.appendChild(beltTag(a.faixa)); const h3=document.createElement('h3'); h3.textContent=a.nome; head.appendChild(h3);
+  const meta=a.metaGrau||10; const faltGrau=Math.max(meta-(a.progresso||0),0); const faltFaixa=(MAX_GRAUS-(a.grau||0))*meta-(a.progresso||0);
+  const p=document.createElement('div'); p.className='small'; p.textContent=`Modalidade: ${a.modalidade} • Nascimento: ${a.nasc||'-'} • Grau: ${a.grau}/${MAX_GRAUS} • Meta: ${meta} • Progresso: ${a.progresso}/${meta} • Falta p/ grau: ${faltGrau} • Falta p/ faixa: ${faltFaixa}`;
+  cont.append(head,p);
+  renderHistorico(a.id);
+  renderHistoricoPresencas(a.id,false);
+  const now=new Date(); const mesEl=document.getElementById('perfil-mes'); if(mesEl) mesEl.value=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const zbtn=document.getElementById('perfil-zerar-mes'); if(zbtn) zbtn.onclick=()=>{
+    const mEl=document.getElementById('perfil-mes'); if(!mEl||!mEl.value) return;
+    const [Y,M]=mEl.value.split('-').map(Number); if(!Y||!M) return;
+    if(confirm('Remover presenças desse mês?')){ 
+      const antes=presencas.length;
+      presencas=presencas.filter(p=> !(String(p.alunoId)===String(a.id) && parseBR(p.data).getFullYear()===Y && parseBR(p.data).getMonth()===(M-1)));
+      const removidas = antes - presencas.length;
+      if(removidas>0){ a.progresso = Math.max(0,(a.progresso||0)-removidas); }
+      saveLocal(); renderHistoricoPresencas(a.id,false); renderAlunos(); renderDashboard();
+    }
+  };
+  const add=document.getElementById('hist-add'); if(add) add.onclick=()=>{
+    const tipo=document.getElementById('hist-tipo').value;
+    const faixa=document.getElementById('hist-faixa').value;
+    const grau=parseInt(document.getElementById('hist-grau').value||'0',10);
+    const dataInp=document.getElementById('hist-data').value;
+    const dataStr=dataInp?(()=>{const [Y,M,D]=dataInp.split('-'); return `${D}/${M}/${Y}`})():toBR(new Date());
+    (a.historico=a.historico||[]).push({tipo,faixa,grau,data:dataStr});
+    if(tipo==='faixa'){ a.faixa=faixa; a.grau=0; a.progresso=0; }
+    if(tipo==='grau'){ a.grau=grau; a.progresso=0; }
+    saveLocal(); renderHistorico(a.id); renderAlunos(); renderDashboard();
+  };
+  const allBtn=document.getElementById('btn-ver-todas'); if(allBtn) allBtn.onclick=()=>{ renderHistoricoPresencas(a.id,true); allBtn.style.display='none'; const u=document.getElementById('btn-ver-ultimas'); if(u) u.style.display='inline-block'; };
+  const ultBtn=document.getElementById('btn-ver-ultimas'); if(ultBtn) ultBtn.onclick=()=>{ renderHistoricoPresencas(a.id,false); ultBtn.style.display='none'; const t=document.getElementById('btn-ver-todas'); if(t) t.style.display='inline-block'; };
+  const voltar=document.getElementById('voltar-lista'); if(voltar) voltar.onclick=()=>{ showSection('alunos-section'); };
+}
+function renderHistorico(id){
+  const a=alunos.find(x=>String(x.id)===String(id)); const ul=document.getElementById('perfil-historico'); ul.innerHTML='';
+  (a.historico||[]).sort((A,B)=> A.data.split('/').reverse().join('-').localeCompare(B.data.split('/').reverse().join('-')) ).forEach(h=>{
+    const li=document.createElement('li'); li.textContent= h.tipo==='faixa'? `FAIXA ${h.faixa} — ${h.data}` : `Grau ${h.grau} (${h.faixa}) — ${h.data}`; ul.appendChild(li);
+  });
+}
+function renderHistoricoPresencas(id, all){
+  const box=document.getElementById('perfil-historico-presencas');
+  const list=presencas
+    .filter(p=>String(p.alunoId)===String(id))
+    .sort((A,B)=>parseBR(B.data)-parseBR(A.data));
+  const rec=all?list:list.slice(0,20);
+  box.innerHTML='';
+  if(!rec.length){ box.innerHTML='<li class="pres-item"><div class="left">Sem presenças</div></li>'; return; }
+  rec.forEach(p=>{
+    const li=document.createElement('li'); li.className='pres-item';
+    const turma=turmas.find(t=>String(t.id)===String(p.turmaId));
+    li.innerHTML=`<div class="left"><strong>${p.data}</strong> <span class="small">• ${turma?turma.nome:'Turma'}</span> ${p.extra?' <span class="extra">⭐ extra</span>':''}</div>`;
+    const del=document.createElement('button'); del.className='btn danger'; del.textContent='🗑️'; del.title='Excluir presença';
+    del.onclick=()=>{ if(confirm('Excluir esta presença?')){ excluirPresenca(p.id); renderHistoricoPresencas(id,all); renderAlunos(); renderDashboard(); } };
+    li.appendChild(del); box.appendChild(li);
+  });
+}
+
+/* ===== NAVEGAÇÃO (menu lateral intacto) ===== */
+(function(){
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('backdrop');
+  const btn = document.getElementById('menu-toggle');
+  function open(){
+    sidebar.classList.add('open');
+    backdrop.hidden=false; requestAnimationFrame(()=>backdrop.classList.add('show'));
+    btn.setAttribute('aria-expanded','true'); sidebar.setAttribute('aria-hidden','false');
+  }
+  function close(){
+    sidebar.classList.remove('open');
+    backdrop.classList.remove('show');
+    setTimeout(()=>backdrop.hidden=true,200);
+    btn.setAttribute('aria-expanded','false'); sidebar.setAttribute('aria-hidden','true');
+  }
+  function toggle(){ if(sidebar.classList.contains('open')) close(); else open(); }
+  document.getElementById('menu-hit').addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); toggle(); });
+  backdrop.addEventListener('click', close);
+  sidebar.addEventListener('click', (e)=>{
+    const l=e.target.closest('.nav-link'); if(!l) return;
+    close();
+    showSection(l.getAttribute('data-section'));
+  });
+  let touchX=null;
+  window.addEventListener('touchstart',(e)=>{ if(e.touches.length===1){ touchX=e.touches[0].clientX; }}, {passive:true});
+  window.addEventListener('touchmove',(e)=>{
+    if(touchX===null) return;
+    const dx=e.touches[0].clientX-touchX;
+    if(!sidebar.classList.contains('open') && touchX<24 && dx>30){ open(); touchX=null; }
+    if(sidebar.classList.contains('open') && dx<-40){ close(); touchX=null; }
+  }, {passive:true});
+  window.addEventListener('touchend',()=>{ touchX=null }, {passive:true});
+  window.addEventListener('keydown',(e)=>{ if(e.key==='Escape'&&sidebar.classList.contains('open')) close(); });
+})();
+
+/* ===== SECÇÕES / SELECTS / INICIALIZAÇÃO ===== */
+function showSection(id){
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active-section'));
+  document.getElementById(id).classList.add('active-section');
+  document.querySelectorAll('.nav-link').forEach(n=> n.classList.toggle('active', n.getAttribute('data-section')===id));
+  if(id==='presencas-section'){ refreshPresencaAlunoList(); }
+}
+function updateSelects(keepTurma=false){
+  const pSel=document.getElementById('presenca-turma'); 
+  if(pSel){
+    const prev=keepTurma?pSel.value:'';
+    pSel.innerHTML=''; turmas.forEach(t=>{const o=document.createElement('option'); o.value=t.id; o.textContent=t.nome; pSel.appendChild(o)});
+    if(keepTurma && prev) pSel.value=prev;
+    if(!pSel.value && turmas.length) pSel.value=turmas[0].id;
+    refreshPresencaAlunoList();
+  }
+  const rSel=document.getElementById('ranking-turma'); if(rSel){rSel.innerHTML='<option value=\"\">(todas)</option>'; turmas.forEach(t=>{const o=document.createElement('option'); o.value=t.id; o.textContent=t.nome; rSel.appendChild(o)})}
+  const mSel=document.getElementById('msg-turma'); if(mSel){mSel.innerHTML='<option value=\"\">(todas)</option>'; turmas.forEach(t=>{const o=document.createElement('option'); o.value=t.id; o.textContent=t.nome; mSel.appendChild(o)})}
+  const histFaixa=document.getElementById('hist-faixa'); if(histFaixa){histFaixa.innerHTML=FAIXAS.map(f=>`<option value="${f}">${f}</option>`).join('')}
+}
+
+/* ===== BOOT ===== */
+document.addEventListener('DOMContentLoaded',()=>{
+  loadLocal(); renderTurmas(); renderAlunos(); updateSelects(); renderDashboard();
+
+  const addTurma=document.getElementById('add-turma-btn');
+  const addAluno=document.getElementById('add-aluno-btn');
+  if(addTurma) addTurma.addEventListener('click', (e)=>{e.preventDefault(); e.stopPropagation(); popupTurma();});
+  if(addAluno) addAluno.addEventListener('click', (e)=>{e.preventDefault(); e.stopPropagation(); popupAluno();});
+
+  const turmaSel=document.getElementById('presenca-turma');
+  if(turmaSel){ turmaSel.addEventListener('change', refreshPresencaAlunoList); }
+
+  document.getElementById('aluno-search').addEventListener('input', renderAlunos);
+  document.getElementById('btn-registrar').onclick=()=>{
+    const turmaId=document.getElementById('presenca-turma').value; const dataISO=document.getElementById('presenca-data').value; const qtd=parseInt(document.getElementById('presenca-quantidade').value,10)||1;
+    const ids=Array.from(document.querySelectorAll('#presenca-alunos-fieldset input:checked')).map(cb=>cb.value);
+    if(!turmaId||!ids.length) return alert('Selecione a turma e os alunos.');
+    registerPresencas(turmaId, dataISO, ids, qtd);
+    document.getElementById('presenca-alunos-fieldset').querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=false);
+  };
+  document.getElementById('ranking-atualizar').onclick=(e)=>{e.preventDefault(); renderRanking();};
+  document.getElementById('msg-gerar').onclick=(e)=>{e.preventDefault(); gerarMensagem();};
+  document.getElementById('msg-copiar').onclick=(e)=>{e.preventDefault(); copiarMensagem();};
+  document.getElementById('rel-birthdays').onclick=relAniversariantes;
+  document.getElementById('rel-presencas').onclick=relPresencas;
+  document.getElementById('rel-graduacao').onclick=relGraduacao;
+  document.getElementById('exportar-btn').onclick=()=>{const blob=new Blob([JSON.stringify({turmas,alunos,presencas},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='jiujitsu_data.json';a.click();URL.revokeObjectURL(url)};
+  document.getElementById('importar-btn').onclick=()=>document.getElementById('importar-input').click();
+  document.getElementById('importar-input').addEventListener('change', async (e)=>{const f=e.target.files[0]; if(!f) return; try{const txt=await f.text(); const d=JSON.parse(txt); turmas=d.turmas||[]; alunos=d.alunos||[]; presencas=d.presencas||[]; saveLocal(); renderTurmas(); renderAlunos(); updateSelects(); renderDashboard(); document.getElementById('import-export-status').textContent='Dados importados.';}catch(_){document.getElementById('import-export-status').textContent='Falha ao importar.';}});
+  document.getElementById('voltar-lista').onclick=()=>showSection('alunos-section');
+  refreshPresencaAlunoList();
+});
+</script>
+</body>
+</html>
